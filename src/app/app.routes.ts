@@ -7,7 +7,7 @@ import { DataResolver } from './app.resolver';
 
 
 export const ROUTES: Routes = [
-  { path: '',      component: Home },
+  { path: '', pathMatch:'full',     component: Home ,data:{title:'首页'}},
   { path: 'home',  component: Home },
   { path: 'about', component: About },
   {

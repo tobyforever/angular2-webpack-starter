@@ -14,14 +14,15 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ForkCheckerPlugin = require('awesome-typescript-loader').ForkCheckerPlugin;
 const HtmlElementsPlugin = require('./html-elements-plugin');
 const AssetsPlugin = require('assets-webpack-plugin');
-const ContextReplacementPlugin = require('webpack/lib/ContextReplacementPlugin'); 
+const ContextReplacementPlugin = require('webpack/lib/ContextReplacementPlugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 /*
  * Webpack Constants
  */
 const HMR = helpers.hasProcessFlag('hot');
 const METADATA = {
-  title: 'Angular2 Webpack Starter by @gdi2290 from @AngularClass',
+  title: 'iFish',
   baseUrl: '/',
   isDevServer: helpers.isWebpackDevServer()
 };
@@ -58,11 +59,10 @@ module.exports = function(options) {
      * See: http://webpack.github.io/docs/configuration.html#entry
      */
     entry: {
-
       'polyfills': './src/polyfills.browser.ts',
       'vendor':    './src/vendor.browser.ts',
-      'main':      './src/main.browser.ts'
-
+      'main':      './src/main.browser.ts',
+      'styles': './src/main.browser.scss'
     },
 
     /*
@@ -159,6 +159,16 @@ module.exports = function(options) {
           test: /\.css$/,
           loaders: ['to-string-loader', 'css-loader']
         },
+        {
+          test: /\.scss$/,
+          exclude: [helpers.root('src/main.browser.scss')],
+          loader: 'css-to-string!css?sourceMap!sass?sourceMap'
+        },
+        {
+          test: /\.scss$/,
+          include: [helpers.root('src/main.browser.scss')],
+          loader: ExtractTextPlugin.extract('css?sourceMap!sass?sourceMap'),
+        },
 
         /* Raw loader support for *.html
          * Returns file content as string
@@ -167,15 +177,25 @@ module.exports = function(options) {
          */
         {
           test: /\.html$/,
-          loader: 'raw-loader',
+          //loader: 'raw-loader',
+          loader: 'html!markup-inline',
           exclude: [helpers.root('src/index.html')]
         },
 
         /* File loader for supporting images, for example, in CSS files.
         */
+        // {
+        //   test: /\.(jpg|png|gif)$/,
+        //   loader: 'file'
+        // }
         {
-          test: /\.(jpg|png|gif)$/,
-          loader: 'file'
+          test: /\.(png|jpg|jpeg|gif)$/,
+          exclude: /node_modules/,
+          loader: "url?limit=8092&name=images/[hash].[ext]"
+        },
+        {
+          test: /\.svg$/,
+          loader: 'file?name=images/[hash].[ext]',
         }
       ],
 
@@ -198,6 +218,7 @@ module.exports = function(options) {
      * See: http://webpack.github.io/docs/configuration.html#plugins
      */
     plugins: [
+      new ExtractTextPlugin('css/[hash].css'),
       new AssetsPlugin({
         path: helpers.root('dist'),
         filename: 'webpack-assets.json',
@@ -226,7 +247,7 @@ module.exports = function(options) {
       /**
        * Plugin: ContextReplacementPlugin
        * Description: Provides context to Angular's use of System.import
-       * 
+       *
        * See: https://webpack.github.io/docs/list-of-plugins.html#contextreplacementplugin
        * See: https://github.com/angular/angular/issues/11580
        */
@@ -259,7 +280,8 @@ module.exports = function(options) {
        */
       new HtmlWebpackPlugin({
         template: 'src/index.html',
-        chunksSortMode: 'dependency'
+        chunksSortMode: 'dependency',
+        favicon : 'src/assets/images/logos/favicon.ico'
       }),
 
       /*
